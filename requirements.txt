@@ -1,0 +1,23 @@
+# ===== 核心依赖 =====
+Flask>=3.0.0
+Flask-CORS>=4.0.0
+Flask-SocketIO>=5.3.6
+python-socketio>=5.10.0
+eventlet>=0.36.1
+PyYAML>=6.0.1
+requests>=2.31.0
+
+# ===== 舵机后端 (二选一,都装更稳) =====
+pigpio>=1.78
+RPi.GPIO>=0.7.1; platform_machine == "armv7l" or platform_machine == "aarch64"
+
+# ===== 表情显示 =====
+pygame>=2.5.2
+Pillow>=10.0.0
+
+# ===== 语音 (可选) =====
+pyttsx3>=2.90
+# edge-tts>=6.1.10        # 取消注释以启用在线 TTS
+
+# ===== 开发 / 调试 =====
+# pytest>=7.4.0

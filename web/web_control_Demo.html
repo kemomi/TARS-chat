@@ -1,0 +1,107 @@
+<!--
+ * @Author: fbee3157 fbee3157@outlook.com
+ * @Date: 2026-05-12 16:01:18
+ * @LastEditors: fbee3157 fbee3157@outlook.com
+ * @LastEditTime: 2026-05-12 16:03:01
+ * @FilePath: \web\web_control.html
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TARA-bot 远程控制台</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; text-align: center; }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .control-group { margin: 20px 0; }
+        button { padding: 10px 20px; margin: 5px; font-size: 16px; border: none; border-radius: 5px; cursor: pointer; }
+        .happy { background: #4CAF50; color: white; }
+        .sad { background: #2196F3; color: white; }
+        .angry { background: #f44336; color: white; }
+        input, select { padding: 10px; width: 80%; margin: 10px auto; display: block; border: 1px solid #ddd; border-radius: 5px; }
+        .joystick { width: 200px; height: 200px; background: #eee; border-radius: 50%; margin: 20px auto; position: relative; cursor: pointer; }
+        .joystick-knob { width: 60px; height: 60px; background: #333; border-radius: 50%; position: absolute; top: 70px; left: 70px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 TARA-bot 控制中心</h1>
+        <p><small>连接状态: <span id="status" style="color: orange;">未连接</span></small></p>
+
+        <!-- 表情控制 -->
+        <div class="control-group">
+            <h3>😊 表情控制</h3>
+            <button class="happy" onclick="sendExpression('happy')">开心</button>
+            <button class="sad" onclick="sendExpression('sad')">难过</button>
+            <button class="angry" onclick="sendExpression('angry')">生气</button>
+            <button onclick="sendExpression('neutral')">中性</button>
+        </div>
+
+        <!-- 动作控制 (模拟摇杆) -->
+        <div class="control-group">
+            <h3>🎮 动作控制</h3>
+            <div class="joystick" id="joystick">
+                <div class="joystick-knob" id="knob"></div>
+            </div>
+            <p>尝试拖动中间的圆点控制头部转动</p>
+        </div>
+
+        <!-- 语音对话 -->
+        <div class="control-group">
+            <h3>🗣️ 语音对话</h3>
+            <input type="text" id="speechInput" placeholder="输入你想对 TARA-bot 说的话..." onkeypress="if(event.key==='Enter')speak()">
+            <button onclick="speak()" style="background:#9c27b0; color:white;">发送语音</button>
+        </div>
+    </div>
+
+    <script>
+        // 模拟连接（实际使用时需要替换为 WebSocket 或 HTTP 请求到你的 M5Stack）
+        const status = document.getElementById('status');
+        
+        // 这里只是一个演示，实际需要根据你的固件通信协议修改
+        function sendCommand(cmd, val = '') {
+            console.log('发送指令:', cmd, val);
+            // 示例: fetch(`/api/${cmd}?value=${val}`); 
+            alert(`【演示模式】指令已发送: ${cmd} ${val}`);
+        }
+
+        function sendExpression(face) {
+            sendCommand('face', face);
+            document.getElementById('status').textContent = '正在显示: ' + face;
+        }
+
+        function speak() {
+            const text = document.getElementById('speechInput').value;
+            if(text) sendCommand('speak', encodeURIComponent(text));
+        }
+
+        // 简单的摇杆逻辑
+        const joystick = document.getElementById('joystick');
+        const knob = document.getElementById('knob');
+        let isDragging = false;
+
+        knob.addEventListener('mousedown', (e) => { isDragging = true; });
+        document.addEventListener('mouseup', (e) => { isDragging = false; resetKnob(); });
+        joystick.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = joystick.getBoundingClientRect();
+            let x = e.clientX - rect.left - 100;
+            let y = e.clientY - rect.top - 100;
+            const dist = Math.sqrt(x*x + y*y);
+            if (dist > 70) { x = x/dist*70; y = y/dist*70; }
+            knob.style.transform = `translate(${x}px, ${y}px)`;
+            
+            // 这里可以映射到舵机角度 Pan/Tilt
+            const pan = Math.round((x + 70) * 180 / 140); // -70~70 -> 0~180
+            const tilt = Math.round((y + 70) * 180 / 140);
+            // sendCommand('servo', `pan=${pan}&tilt=${tilt}`);
+        });
+
+        function resetKnob() {
+            knob.style.transform = 'translate(0px, 0px)';
+        }
+    </script>
+</body>
+</html>

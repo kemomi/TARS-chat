@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# 资源缓存
+*.log
+firmware/assets/faces/*/__cache__/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# 构建产物
+build/
+dist/
+*.egg-info/
+
+# 用户配置
+firmware/config.local.yaml
+
+# 临时文件
+/tmp/*.mp3
+/tmp/*.wav

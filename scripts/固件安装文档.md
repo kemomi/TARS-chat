@@ -1,0 +1,113 @@
+# 固件安装指南
+
+## 1. 系统要求
+
+- 树莓派 4B / 3B+ / Zero 2W
+- Raspberry Pi OS (Bookworm 或更新版本,64-bit 推荐)
+- Python 3.9+
+
+## 2. 一键安装
+
+```bash
+git clone https://github.com/kemomi/TARS-chat.git
+cd TARS-chat
+bash scripts/install.sh
+```
+
+`install.sh` 会自动完成:
+- 安装 APT 依赖(pigpio、SDL2 等)
+- 创建 Python 虚拟环境
+- 安装 `requirements.txt`
+- 启动 `pigpiod` 守护进程
+- 注册 systemd 服务
+
+## 3. 手动安装(如果自动脚本失败)
+
+### 3.1 系统依赖
+
+```bash
+sudo apt update
+sudo apt install -y python3-pip python3-venv python3-dev \
+    pigpio python3-pigpio \
+    libsdl2-dev libsdl2-image-dev libsdl2-ttf-dev \
+    libportaudio2 \
+    mpg123 espeak-ng
+sudo systemctl enable --now pigpiod
+```
+
+### 3.2 Python 依赖
+
+```bash
+cd firmware
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+### 3.3 运行(前台调试)
+
+```bash
+cd firmware
+source venv/bin/activate
+python main.py
+```
+
+此时浏览器访问 `http://<树莓派IP>:8080` 应该能看到控制台。
+
+## 4. 开机自启 (systemd)
+
+```bash
+sudo cp systemd/tars-chat.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now tars-chat
+sudo systemctl status tars-chat   # 查看状态
+```
+
+查看日志:
+```bash
+journalctl -u tars-chat -f
+# 或
+tail -f /var/log/tars-chat.log
+```
+
+## 5. 配置说明
+
+所有可调参数都在 `firmware/config.yaml`,常见修改:
+
+| 项                  | 说明                                     |
+|---------------------|------------------------------------------|
+| `servo.pan_pin`     | 如果接线换了 GPIO,改这里                |
+| `servo.pan_range`   | 缩小范围防止打到外壳                     |
+| `display.width/height` | 匹配你的屏幕分辨率                    |
+| `voice.enabled`     | `true` 启用语音(需先装 pyttsx3 或 edge-tts) |
+| `web.port`          | 改 80 端口需要 `sudo`                    |
+
+修改后重启服务:
+```bash
+sudo systemctl restart tars-chat
+```
+
+## 6. 常见问题
+
+### Q1: 舵机疯狂抖动 / 不动?
+- 检查是否启动 pigpiod: `sudo systemctl status pigpiod`
+- 舵机必须有**独立 5V 供电**,不能从 Pi 引脚取电
+- GND 必须共地
+
+### Q2: `http://<IP>:8080` 打不开?
+- 检查防火墙: `sudo ufw allow 8080`
+- 确认服务运行: `sudo systemctl status tars-chat`
+- 同一局域网内访问
+
+### Q3: 表情不显示,只有占位文字?
+- 检查 `firmware/assets/faces/` 下是否有 PNG 文件
+- 资源规格见 [assets/faces/README.md](../assets/faces/README.md)
+
+### Q4: 想脱离桌面环境跑(纯命令行启动)?
+- 编辑 `src/face_display.py` 中的 `SDL_VIDEODRIVER`,改为 `"kmsdrm"`
+- 或在 systemd 服务文件里加 `Environment=SDL_VIDEODRIVER=kmsdrm`
+
+### Q5: 我用的不是树莓派,是 ESP32 / M5Stack?
+- 本固件目前仅适配树莓派
+- 如要移植到 MCU,需要重写舵机/显示驱动,但 Web 端协议(HTTP + Socket.IO)可以保留作为通信层

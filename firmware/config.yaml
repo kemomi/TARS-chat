@@ -1,0 +1,65 @@
+# =============================================================================
+# TARS-chat 主配置文件
+# =============================================================================
+
+# ---------- 舵机 ----------
+servo:
+  pan_pin: 18          # BCM 编号, 水平转动
+  tilt_pin: 13         # BCM 编号, 俯仰
+  pan_range: [0, 180]  # 安全角度范围 (度)
+  tilt_range: [30, 150]
+  freq: 50             # PWM 频率 (Hz), 一般舵机为 50
+
+# ---------- 显示 ----------
+display:
+  width: 320           # 表情屏分辨率
+  height: 240
+  fullscreen: true
+  assets_dir: "assets/faces"
+
+# ---------- 语音 ----------
+voice:
+  enabled: false       # 开启后需先安装依赖,见 README
+  tts_engine: "pyttsx3"   # 可选: pyttsx3 (离线) | edge-tts (在线)
+  lang: "zh"
+
+# ---------- LLM 对话 ----------
+llm:
+  enabled: false          # 改为 true 启用对话功能
+  provider: "ollama"      # ollama (本地) | openai | anthropic
+  # ----- 通用 -----
+  max_history: 10         # 保留最近 N 轮对话上下文
+  system_prompt: |
+    你是 TARS-chat,一个圆滚滚的桌面机器人。你的性格活泼、好奇、有点话痨。
+    回答时必须严格输出 JSON,不要带任何代码块标记:
+    {
+      "say": "你要说的话(简短,30字以内,口语化)",
+      "expression": "happy | sad | angry | surprised | sleepy | neutral",
+      "motion": "nod | shake | center | none"
+    }
+    表情和动作要匹配语义,例如同意时点头(nod)、否定时摇头(shake)。
+
+  # ----- Ollama 配置 (本地,推荐 Pi 上跑小模型,或外部服务器) -----
+  model: "qwen2.5:3b"          # 树莓派上跑可换 "qwen2.5:0.5b"
+  base_url: "http://localhost:11434"
+
+  # ----- OpenAI 配置 (启用时取消下面注释并切换 provider) -----
+  # provider: "openai"
+  # api_key: ""             # 留空则读环境变量 OPENAI_API_KEY
+  # model: "gpt-4o-mini"
+  # base_url: "https://api.openai.com/v1"   # 兼容服务器在此改
+
+  # ----- Anthropic 配置 -----
+  # provider: "anthropic"
+  # api_key: ""             # 留空则读环境变量 ANTHROPIC_API_KEY
+  # model: "claude-haiku-4-5-20251001"
+
+
+# ---------- Web ----------
+web:
+  host: "0.0.0.0"
+  port: 8080
+
+# ---------- 日志 ----------
+log:
+  level: "INFO"        # DEBUG / INFO / WARNING / ERROR
