@@ -49,7 +49,7 @@ TARS-chat/
 
 ### 硬件准备
 1. 看 [`硬件BOM + 接线表 + ASCII 接线图`](./schematics/BOM+接线表+ASCII接线图.md) 准备元件清单并完成接线
-2. 看 [`结构件清单`](./stls/README.md) 打印 3D 结构件
+2. 看 [`结构件清单`](./stls/README.md) 打印 3D 结构件和所需的元器件 [`BOM清单`](./stls/BOM.md)
 3. 装配机器人
 
 ### 烧录固件
