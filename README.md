@@ -1,6 +1,5 @@
 # TARS-chat
 
-[![Build TARS-chat Firmware](https://github.com/kemomi/TARS-chat/actions/workflows/build.yml/badge.svg)](https://github.com/kemomi/TARS-chat/actions/workflows/build.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?logo=discord&logoColor=white)](https://discord.gg/eGhd9adnBm)
 
