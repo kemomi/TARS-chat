@@ -1,13 +1,14 @@
 # TARS-chat
-
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-加入服务器-5865F2?logo=discord&logoColor=white)](https://discord.gg/eGhd9adnBm)
+
+![](https://github.com/kemomi/TARS-chat/blob/main/bot.png?raw=true)
 
 > 一款由 **Python** 驱动、嵌入 **树莓派 4B** 的超可爱迷你桌面机器人。
 > 可显示表情、转动头部、对话交流,通过手机/浏览器远程控制。
 
 
-[👉操作界面👈](https://kemomi.github.io/TARS-chat/)
+[👉一起控制它👈](https://kemomi.github.io/TARS-chat/)
 
 [日本語](./README_ja.md) | [English](./README_en.md) | [中文](./README_cn.md)
 
