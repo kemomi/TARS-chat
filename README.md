@@ -7,7 +7,7 @@
 > 可显示表情、转动头部、对话交流,通过手机/浏览器远程控制。
 
 
-![👉操作界面👈](https://kemomi.github.io/TARS-chat/)
+[👉操作界面👈](https://kemomi.github.io/TARS-chat/)
 
 [日本語](./README_ja.md) | [English](./README_en.md) | [中文](./README_cn.md)
 
