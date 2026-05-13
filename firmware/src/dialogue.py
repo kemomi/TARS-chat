@@ -7,6 +7,10 @@
   2. 头部动作 (点头/摇头)
   3. TTS 语音
 所有动作非阻塞,通过线程并发,保证用户体感"自然"。
+
+视觉问答:
+  用户提到 VISION_KEYWORDS 中任一关键词时,自动拍照传给 LLM
+  (需要 LLM Provider 支持 vision: OpenAI gpt-4o / Anthropic Claude 都行)
 """
 import logging
 import threading
@@ -16,53 +20,73 @@ from .llm_provider import BaseLLMProvider, LLMResponse
 
 logger = logging.getLogger("dialogue")
 
+VISION_KEYWORDS = ("看到", "看看", "看一下", "看一眼", "你看", "瞧一眼",
+                   "前面", "面前", "周围", "环境", "现在拍",
+                   "what do you see", "look at", "describe")
+
 
 class DialogueOrchestrator:
     def __init__(self, llm: Optional[BaseLLMProvider],
-                 servo, face, voice):
+                 servo, face, voice, camera=None):
         self.llm = llm
         self.servo = servo
         self.face = face
         self.voice = voice
-        self._lock = threading.Lock()  # 同一时刻只处理一次对话
+        self.camera = camera
+        self._lock = threading.Lock()
         self._last_response: Optional[LLMResponse] = None
 
     @property
     def available(self) -> bool:
         return self.llm is not None
 
-    def chat(self, user_text: str) -> dict:
+    @property
+    def vision_available(self) -> bool:
+        return self.camera is not None and self.llm is not None
+
+    def chat(self, user_text: str, force_vision: bool = False) -> dict:
         """
         同步入口:输入用户话,触发完整反应。
-        返回 LLM 的结构化结果(供 Web 端显示)。
+        force_vision=True 强制拍照(用于 Web 端"拍一张并问"按钮)
         """
         if not self.llm:
             return {"error": "LLM 未启用"}
 
         with self._lock:
             logger.info(f"用户: {user_text}")
-            resp = self.llm.chat(user_text)
+
+            # 自动判定是否需要视觉
+            use_vision = force_vision or self._needs_vision(user_text)
+            image_b64 = None
+            if use_vision and self.camera:
+                image_b64 = self.camera.snapshot_base64()
+                if image_b64:
+                    logger.info(f"已附带摄像头快照 ({len(image_b64)} chars base64)")
+
+            resp = self.llm.chat(user_text, image_b64=image_b64)
             self._last_response = resp
             logger.info(f"LLM: say='{resp.say}' expr={resp.expression} motion={resp.motion}")
             self._execute(resp)
-            return resp.to_dict()
+            return {**resp.to_dict(), "vision_used": image_b64 is not None}
+
+    @staticmethod
+    def _needs_vision(text: str) -> bool:
+        low = text.lower()
+        return any(k in low for k in VISION_KEYWORDS)
 
     def _execute(self, resp: LLMResponse):
         """三路并发: 表情立刻切换, 动作和 TTS 并行"""
-        # 1) 表情 (同步, 立刻)
         if resp.expression and resp.expression != "none":
             try:
                 self.face.show(resp.expression)
             except Exception as e:
                 logger.error(f"表情切换失败: {e}")
 
-        # 2) 动作 (异步线程)
         if resp.motion and resp.motion not in ("none", ""):
             threading.Thread(
                 target=self._do_motion, args=(resp.motion,), daemon=True
             ).start()
 
-        # 3) TTS (异步)
         if resp.say and self.voice:
             self.voice.speak(resp.say, blocking=False)
 

@@ -1,4 +1,12 @@
-# 硬件接线说明
+<!--
+ * @Author: fbee3157 fbee3157@outlook.com
+ * @Date: 2026-05-12 17:24:19
+ * @LastEditors: fbee3157 fbee3157@outlook.com
+ * @LastEditTime: 2026-05-13 16:39:40
+ * @FilePath: \TARS-chat\schematics\BOM+接线表+ASCII接线图.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
+# 硬件BOM + 接线表 + ASCII 接线图
 
 ## BOM (Bill of Materials)
 
@@ -14,9 +22,9 @@
 | 8    | M2/M3 螺丝包      | 1    | 与 STL 文件配套                          |
 | 9    | (可选) USB 麦克风  | 1    | 启用语音对话时需要                       |
 | 10   | (可选) 小喇叭 8Ω  | 1    | TTS 输出                                 |
-| 11   | (可选) Pi CSI 摄像头 | 1 | Camera v2 / v3 / HQ;USB UVC 也可        |
 
 > ⚠️ **关键提示**: 千万不要让舵机直接从树莓派 5V 引脚取电!舵机启动电流大,会导致树莓派复位。必须用独立 UBEC/降压模块。
+关键避坑:舵机一定要走独立 UBEC 供电,千万别从树莓派 5V 引脚拉,会反复重启。 ASCII 接线图照着接就行
 
 ## GPIO 接线表
 

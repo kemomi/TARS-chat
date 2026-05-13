@@ -1,4 +1,4 @@
-# API 参考
+# HTTP/WebSocket 接口
 
 固件提供两套通信接口:**HTTP REST** 用于命令式控制,**WebSocket (Socket.IO)** 用于实时数据流。
 

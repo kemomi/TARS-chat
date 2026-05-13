@@ -23,6 +23,23 @@ voice:
   tts_engine: "pyttsx3"   # 可选: pyttsx3 (离线) | edge-tts (在线)
   lang: "zh"
 
+# ---------- 摄像头 + 人脸跟踪 ----------
+camera:
+  enabled: false           # 改为 true 启用摄像头
+  width: 640
+  height: 480
+  fps: 15
+  device_index: 0          # USB 摄像头用 0/1/2..., CSI 摄像头忽略此项
+  tracking:
+    enabled: true          # 是否加载人脸跟踪模块
+    autostart: false       # 启动时自动开始跟踪 (false: 在 Web 端手动开启)
+    pan_gain: 0.05         # 左右跟踪增益,过大易抖
+    tilt_gain: 0.04        # 上下跟踪增益
+    deadzone_pct: 0.08     # 中心 ±8% 内不动
+    lost_timeout: 1.5      # 失去目标多少秒后回中
+    detect_fps: 10         # 检测帧率 (与 camera.fps 解耦, 节省 CPU)
+    min_face_size: 60      # 最小人脸像素 (小于此值不检测)
+
 # ---------- LLM 对话 ----------
 llm:
   enabled: false          # 改为 true 启用对话功能

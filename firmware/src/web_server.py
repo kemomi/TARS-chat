@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+# 🌐 Flask + Socket.IO 服务
 Web 服务器 (Flask + Socket.IO)
 ==================================
 - HTTP API : /api/face, /api/servo, /api/speak, /api/status
@@ -17,7 +18,8 @@ logger = logging.getLogger("web")
 WEB_ROOT = Path(__file__).parent.parent.parent / "web"
 
 
-def create_app(servo, face, voice, config, dialogue=None):
+def create_app(servo, face, voice, config, dialogue=None,
+               camera=None, tracker=None):
     app = Flask(
         __name__,
         static_folder=str(WEB_ROOT),
@@ -43,6 +45,9 @@ def create_app(servo, face, voice, config, dialogue=None):
             },
             "voice_enabled": voice is not None,
             "llm_enabled": dialogue is not None and dialogue.available,
+            "camera_enabled": camera is not None,
+            "camera_backend": camera.backend if camera else None,
+            "tracker": tracker.stats if tracker else None,
         })
 
     # ---------- 表情 ----------
@@ -95,10 +100,10 @@ def create_app(servo, face, voice, config, dialogue=None):
             return jsonify({"ok": False, "error": "LLM 未启用,请在 config.yaml 中设置 llm.enabled=true"}), 400
         data = request.get_json(force=True, silent=True) or {}
         text = (data.get("text") or "").strip()
+        force_vision = bool(data.get("vision", False))
         if not text:
             return jsonify({"ok": False, "error": "empty text"}), 400
-        result = dialogue.chat(text)
-        # 广播给所有客户端 (多端同步)
+        result = dialogue.chat(text, force_vision=force_vision)
         socketio.emit("dialogue_event", {"user": text, "response": result})
         return jsonify({"ok": True, "response": result})
 
@@ -107,6 +112,62 @@ def create_app(servo, face, voice, config, dialogue=None):
         if dialogue:
             dialogue.reset()
         return jsonify({"ok": True})
+
+    # ---------- 摄像头 ----------
+    @app.route("/api/camera/snapshot")
+    def api_snapshot():
+        if not camera:
+            return jsonify({"ok": False, "error": "无摄像头"}), 400
+        from flask import Response
+        b = camera.jpeg(quality=85)
+        if not b:
+            return jsonify({"ok": False, "error": "采集失败"}), 500
+        return Response(b, mimetype="image/jpeg")
+
+    @app.route("/api/camera/stream")
+    def api_stream():
+        """MJPEG 推流: multipart/x-mixed-replace"""
+        if not camera:
+            return jsonify({"ok": False, "error": "无摄像头"}), 400
+        from flask import Response
+        import time as _time
+        try:
+            import cv2 as _cv2
+        except ImportError:
+            _cv2 = None
+
+        def generate():
+            boundary = b"--frame"
+            while True:
+                frame = camera.read()
+                if frame is None:
+                    _time.sleep(0.05)
+                    continue
+                # 若开启跟踪, 在帧上画框
+                if tracker and _cv2 is not None:
+                    box = tracker.last_box
+                    if hasattr(tracker, "detector"):
+                        tracker.detector.draw(frame, box, tracking=tracker.enabled)
+                if _cv2 is None:
+                    _time.sleep(0.1); continue
+                ok, buf = _cv2.imencode(".jpg", frame, [_cv2.IMWRITE_JPEG_QUALITY, 70])
+                if not ok:
+                    continue
+                yield boundary + b"\r\n" + \
+                      b"Content-Type: image/jpeg\r\n\r\n" + buf.tobytes() + b"\r\n"
+                _time.sleep(1.0 / 15)  # 限制为 15fps
+        return Response(generate(),
+                        mimetype="multipart/x-mixed-replace; boundary=frame")
+
+    @app.route("/api/tracker", methods=["POST"])
+    def api_tracker():
+        if not tracker:
+            return jsonify({"ok": False, "error": "跟踪器未启用"}), 400
+        data = request.get_json(force=True, silent=True) or {}
+        if "enabled" in data:
+            tracker.enable(bool(data["enabled"]))
+        socketio.emit("tracker_changed", tracker.stats)
+        return jsonify({"ok": True, "stats": tracker.stats})
 
     # ---------- WebSocket: 实时摇杆 ----------
     @socketio.on("connect")

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-LLM Provider 抽象层
+ # 🧠 LLM 抽象层 (OpenAI/Anthropic/Ollama)
 ==================
 统一三种后端: OpenAI / Anthropic / Ollama
 返回结构化结果: {text, action}

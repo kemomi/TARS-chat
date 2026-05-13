@@ -1,0 +1,21 @@
+[Unit]
+Description=TARS-chat Robot Service
+After=network-online.target pigpiod.service
+Wants=network-online.target
+Requires=pigpiod.service
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__REPO_DIR__/firmware
+Environment="PATH=__REPO_DIR__/firmware/venv/bin:/usr/local/bin:/usr/bin:/bin"
+# 如果要脱离桌面用 KMS 直渲, 取消下一行注释
+# Environment="SDL_VIDEODRIVER=kmsdrm"
+ExecStart=__REPO_DIR__/firmware/venv/bin/python __REPO_DIR__/firmware/main.py
+Restart=on-failure
+RestartSec=5
+StandardOutput=append:/var/log/tars-chat.log
+StandardError=append:/var/log/tars-chat.log
+
+[Install]
+WantedBy=multi-user.target
