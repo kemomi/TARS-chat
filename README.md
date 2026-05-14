@@ -101,6 +101,10 @@ sudo systemctl restart tars-chat
 
 见 [`ROADMAP`](./ROADMAP.md)。
 
+## 🆙 Update docs
+
+见[`更新文档`](./docs/更新文档.md)
+
 ## 🤝 贡献
 
 欢迎提 Issue 与 PR!参与方式见 [`CONTRIBUTING`](./CONTRIBUTING.md)。
